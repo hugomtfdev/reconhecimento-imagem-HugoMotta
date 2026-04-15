@@ -1,59 +1,172 @@
-<div>Teachable Machine Image Model</div>
-<button type="button" onclick="init()">Start</button>
-<div id="webcam-container"></div>
-<div id="label-container"></div>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-<script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
-
-    // the link to your model provided by Teachable Machine export panel
-    const URL = "./my_model/";
-
-    let model, webcam, labelContainer, maxPredictions;
-
-    // Load the image model and setup the webcam
-    async function init() {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-
-        // load the model and metadata
-        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-        // or files from your local hard drive
-        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
-
-        // Convenience function to setup a webcam
-        const flip = true; // whether to flip the webcam
-        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-        await webcam.setup(); // request access to the webcam
-        await webcam.play();
-        window.requestAnimationFrame(loop);
-
-        // append elements to the DOM
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-        labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
-            labelContainer.appendChild(document.createElement("div"));
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Hugo Motta Faria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
         }
-    }
-
-    async function loop() {
-        webcam.update(); // update the webcam frame
-        await predict();
-        window.requestAnimationFrame(loop);
-    }
-
-    // run the webcam image through the image model
-    async function predict() {
-        // predict can take in an image, video or canvas html element
-        const prediction = await model.predict(webcam.canvas);
-        for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
-                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-            labelContainer.childNodes[i].innerHTML = classPrediction;
+        .main-card {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
         }
-    }
-</script>
+        #webcam-container canvas {
+            border-radius: 12px;
+            width: 100% !important; /* Força a responsividade do canvas */
+            height: auto !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+        }
+        .class-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+        .progress {
+            height: 25px;
+            border-radius: 8px;
+            background-color: #e9ecef;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+        }
+        .progress-bar {
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: width 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-5 main-card text-center">
+                
+                <h3 class="mb-4 text-primary fw-bold">Reconhecimento de Imagem</h3>
+                
+                <button type="button" id="start-btn" class="btn btn-primary btn-lg w-100 mb-3 shadow-sm rounded-pill" onclick="init()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-camera-video-fill me-2" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/>
+                    </svg>
+                    Permitir Câmera e Iniciar
+                </button>
+
+                <div id="webcam-container" class="d-flex justify-content-center"></div>
+                <div id="label-container" class="text-start mt-3"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    
+    <script type="text/javascript">
+        // O link para o seu modelo exportado pelo painel do Teachable Machine
+        const URL = "./my_model/";
+
+        let model, webcam, labelContainer, maxPredictions;
+
+        async function init() {
+            // Altera o estado do botão para indicar carregamento
+            const startBtn = document.getElementById("start-btn");
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Carregando Modelo...';
+
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            // Carrega o modelo
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            // Configuração da WebCam (aumentado para melhor resolução base, o CSS cuida de encolher)
+            const flip = true; 
+            webcam = new tmImage.Webcam(400, 400, flip); 
+            await webcam.setup(); // Solicita acesso
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            // Adiciona o canvas da webcam ao DOM
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            
+            // Configura o container de Labels (Barras de Progresso)
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = ""; // Limpa antes de popular
+
+            for (let i = 0; i < maxPredictions; i++) {
+                // Div agrupando título da classe e a barra
+                const classWrapper = document.createElement("div");
+                classWrapper.className = "mb-3";
+
+                // Título (Nome da Classe)
+                const classNameLabel = document.createElement("div");
+                classNameLabel.className = "class-title";
+                classNameLabel.id = "class-name-" + i;
+                
+                // Estrutura do Progress Bar Bootstrap
+                const progressDiv = document.createElement("div");
+                progressDiv.className = "progress";
+
+                const progressBar = document.createElement("div");
+                progressBar.className = "progress-bar progress-bar-striped progress-bar-animated";
+                progressBar.id = "progress-bar-" + i;
+                progressBar.setAttribute("role", "progressbar");
+                progressBar.style.width = "0%";
+                progressBar.innerText = "0%";
+
+                progressDiv.appendChild(progressBar);
+                classWrapper.appendChild(classNameLabel);
+                classWrapper.appendChild(progressDiv);
+                labelContainer.appendChild(classWrapper);
+            }
+
+            // Oculta o botão de start após o carregamento bem-sucedido
+            startBtn.style.display = "none";
+        }
+
+        async function loop() {
+            webcam.update(); // Atualiza o frame da webcam
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            
+            for (let i = 0; i < maxPredictions; i++) {
+                // Transforma a probabilidade em porcentagem (0 a 100)
+                const className = prediction[i].className;
+                const probability = (prediction[i].probability * 100).toFixed(0);
+                
+                // Atualiza os textos
+                document.getElementById("class-name-" + i).innerText = className;
+                
+                // Atualiza a barra de progresso
+                const progressBar = document.getElementById("progress-bar-" + i);
+                progressBar.style.width = probability + "%";
+                progressBar.innerText = probability + "%";
+                progressBar.setAttribute("aria-valuenow", probability);
+
+                // Muda a cor da barra baseado no nível de confiança
+                if (probability >= 80) {
+                    progressBar.className = "progress-bar bg-success"; // Verde para alta confiança
+                } else if (probability >= 40) {
+                    progressBar.className = "progress-bar bg-warning text-dark"; // Amarelo para média
+                } else {
+                    progressBar.className = "progress-bar bg-danger"; // Vermelho para baixa
+                }
+            }
+        }
+    </script>
+</body>
+</html>
