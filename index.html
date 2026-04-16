@@ -1,172 +1,409 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Hugo Motta Faria</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f6f9;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 20px 0;
-        }
-        .main-card {
-            background: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
-        #webcam-container canvas {
-            border-radius: 12px;
-            width: 100% !important; /* Força a responsividade do canvas */
-            height: auto !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-            margin-bottom: 20px;
-        }
-        .class-title {
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 5px;
-            font-size: 0.95rem;
-        }
-        .progress {
-            height: 25px;
-            border-radius: 8px;
-            background-color: #e9ecef;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
-        }
-        .progress-bar {
-            font-weight: bold;
-            font-size: 0.85rem;
-            transition: width 0.2s ease;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hugo Motta Faria — Image Classifier</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    :root {
+      --brand: #4f46e5;
+      --brand-light: #eef2ff;
+      --brand-dark: #3730a3;
+      --surface: #f8f9fa;
+      --radius: 1rem;
+    }
+
+    body {
+      background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .hero-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 24px rgba(79, 70, 229, 0.10);
+      border: 1.5px solid #e0e7ff;
+    }
+
+    .avatar-ring {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--brand-light);
+      border: 3px solid var(--brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--brand-dark);
+      letter-spacing: -1px;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 0.75rem;
+    }
+
+    #webcam-wrapper {
+      background: #f1f5f9;
+      border-radius: var(--radius);
+      border: 2px dashed #c7d2fe;
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+
+    #webcam-wrapper.active {
+      border: 2px solid var(--brand);
+    }
+
+    #webcam-wrapper canvas {
+      border-radius: calc(var(--radius) - 4px);
+      width: 100% !important;
+      height: auto !important;
+      display: block;
+    }
+
+    #webcam-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: #a5b4fc;
+    }
+
+    #webcam-placeholder i {
+      font-size: 3rem;
+    }
+
+    #webcam-placeholder p {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .btn-start {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 0.75rem;
+      padding: 0.65rem 1.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 2px 12px rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-start:hover:not(:disabled) {
+      background: var(--brand-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 18px rgba(79, 70, 229, 0.35);
+    }
+
+    .btn-start:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-start:disabled {
+      background: #a5b4fc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-stop {
+      background: transparent;
+      color: #ef4444;
+      border: 1.5px solid #fca5a5;
+      border-radius: 0.75rem;
+      padding: 0.55rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-stop:hover {
+      background: #fef2f2;
+      transform: translateY(-1px);
+    }
+
+    .label-card {
+      background: var(--surface);
+      border-radius: 0.75rem;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.65rem;
+      border: 1px solid #e5e7eb;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .label-card.top-match {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+    }
+
+    .label-name {
+      font-size: 0.87rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .label-pct {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--brand);
+      min-width: 42px;
+      text-align: right;
+    }
+
+    .label-pct.top {
+      color: var(--brand-dark);
+    }
+
+    .progress {
+      height: 10px;
+      border-radius: 99px;
+      background: #e5e7eb;
+    }
+
+    .progress-bar {
+      border-radius: 99px;
+      background: linear-gradient(90deg, #818cf8, #4f46e5);
+      transition: width 0.35s cubic-bezier(.4,0,.2,1);
+    }
+
+    .progress-bar.top {
+      background: linear-gradient(90deg, #4f46e5, #3730a3);
+    }
+
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 10px;
+    }
+
+    .dot-live {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse-dot 1.2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    .status-msg {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-top: 0.25rem;
+    }
+
+    .empty-labels {
+      text-align: center;
+      color: #d1d5db;
+      padding: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 576px) {
+      .hero-card { padding: 1.25rem !important; }
+    }
+  </style>
 </head>
 <body>
+  <div class="container py-4 py-md-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-sm-10 col-md-8 col-lg-6">
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8 col-lg-5 main-card text-center">
-                
-                <h3 class="mb-4 text-primary fw-bold">Reconhecimento de Imagem</h3>
-                
-                <button type="button" id="start-btn" class="btn btn-primary btn-lg w-100 mb-3 shadow-sm rounded-pill" onclick="init()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-camera-video-fill me-2" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/>
-                    </svg>
-                    Permitir Câmera e Iniciar
-                </button>
-
-                <div id="webcam-container" class="d-flex justify-content-center"></div>
-                <div id="label-container" class="text-start mt-3"></div>
-
+        <div class="hero-card p-4 p-md-4 mb-4">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="avatar-ring">HF</div>
+            <div>
+              <h1 class="h5 mb-0 fw-bold" style="color:#1e1b4b;">Hugo Motta Faria</h1>
+              <p class="mb-0 text-muted" style="font-size:0.85rem;">Image Classifier · Teachable Machine</p>
             </div>
+          </div>
+
+          <p class="section-title">câmera</p>
+          <div id="webcam-wrapper" class="mb-3">
+            <div id="webcam-placeholder">
+              <i class="bi bi-camera-video"></i>
+              <p>Clique em <strong>Iniciar</strong> para ativar a câmera</p>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+              <button id="btn-start" class="btn-start" onclick="init()">
+                <i class="bi bi-play-fill"></i> Iniciar câmera
+              </button>
+            </div>
+            <button id="btn-stop" class="btn-stop d-none" onclick="stopWebcam()">
+              <i class="bi bi-stop-fill"></i> Parar
+            </button>
+            <span id="badge-live" class="badge-live d-none">
+              <span class="dot-live"></span> Ao vivo
+            </span>
+          </div>
+          <p id="status-msg" class="status-msg mt-2"></p>
         </div>
+
+        <div class="hero-card p-4 p-md-4">
+          <p class="section-title">resultados</p>
+          <div id="label-container">
+            <div class="empty-labels">
+              <i class="bi bi-bar-chart-line" style="font-size:1.8rem; display:block; margin-bottom:0.5rem;"></i>
+              Nenhuma predição ainda
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-    
-    <script type="text/javascript">
-        // O link para o seu modelo exportado pelo painel do Teachable Machine
-        const URL = "./my_model/";
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script>
+    const MODEL_URL = "./my_model/";
+    let model, webcam, maxPredictions;
+    let running = false;
 
-        let model, webcam, labelContainer, maxPredictions;
+    const btnStart = document.getElementById("btn-start");
+    const btnStop = document.getElementById("btn-stop");
+    const badgeLive = document.getElementById("badge-live");
+    const statusMsg = document.getElementById("status-msg");
+    const webcamWrapper = document.getElementById("webcam-wrapper");
+    const labelContainer = document.getElementById("label-container");
 
-        async function init() {
-            // Altera o estado do botão para indicar carregamento
-            const startBtn = document.getElementById("start-btn");
-            startBtn.disabled = true;
-            startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Carregando Modelo...';
+    async function init() {
+      btnStart.disabled = true;
+      statusMsg.textContent = "Carregando modelo…";
 
-            const modelURL = URL + "model.json";
-            const metadataURL = URL + "metadata.json";
+      try {
+        const modelURL = MODEL_URL + "model.json";
+        const metadataURL = MODEL_URL + "metadata.json";
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
 
-            // Carrega o modelo
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
+        statusMsg.textContent = "Solicitando acesso à câmera…";
+        const flip = true;
+        webcam = new tmImage.Webcam(300, 300, flip);
+        await webcam.setup();
+        await webcam.play();
 
-            // Configuração da WebCam (aumentado para melhor resolução base, o CSS cuida de encolher)
-            const flip = true; 
-            webcam = new tmImage.Webcam(400, 400, flip); 
-            await webcam.setup(); // Solicita acesso
-            await webcam.play();
-            window.requestAnimationFrame(loop);
+        document.getElementById("webcam-placeholder").remove();
+        webcamWrapper.appendChild(webcam.canvas);
+        webcamWrapper.classList.add("active");
 
-            // Adiciona o canvas da webcam ao DOM
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            
-            // Configura o container de Labels (Barras de Progresso)
-            labelContainer = document.getElementById("label-container");
-            labelContainer.innerHTML = ""; // Limpa antes de popular
+        buildLabels();
+        running = true;
+        btnStart.classList.add("d-none");
+        btnStop.classList.remove("d-none");
+        badgeLive.classList.remove("d-none");
+        statusMsg.textContent = "";
 
-            for (let i = 0; i < maxPredictions; i++) {
-                // Div agrupando título da classe e a barra
-                const classWrapper = document.createElement("div");
-                classWrapper.className = "mb-3";
+        window.requestAnimationFrame(loop);
+      } catch (err) {
+        btnStart.disabled = false;
+        statusMsg.textContent = "Erro: " + (err.message || "Não foi possível iniciar.");
+      }
+    }
 
-                // Título (Nome da Classe)
-                const classNameLabel = document.createElement("div");
-                classNameLabel.className = "class-title";
-                classNameLabel.id = "class-name-" + i;
-                
-                // Estrutura do Progress Bar Bootstrap
-                const progressDiv = document.createElement("div");
-                progressDiv.className = "progress";
+    function buildLabels() {
+      labelContainer.innerHTML = "";
+      for (let i = 0; i < maxPredictions; i++) {
+        const card = document.createElement("div");
+        card.className = "label-card";
+        card.innerHTML = `
+          <div class="label-name">
+            <span class="class-name">Classe ${i + 1}</span>
+            <span class="label-pct">0%</span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>`;
+        labelContainer.appendChild(card);
+      }
+    }
 
-                const progressBar = document.createElement("div");
-                progressBar.className = "progress-bar progress-bar-striped progress-bar-animated";
-                progressBar.id = "progress-bar-" + i;
-                progressBar.setAttribute("role", "progressbar");
-                progressBar.style.width = "0%";
-                progressBar.innerText = "0%";
+    async function loop() {
+      if (!running) return;
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
 
-                progressDiv.appendChild(progressBar);
-                classWrapper.appendChild(classNameLabel);
-                classWrapper.appendChild(progressDiv);
-                labelContainer.appendChild(classWrapper);
-            }
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+      const cards = labelContainer.querySelectorAll(".label-card");
 
-            // Oculta o botão de start após o carregamento bem-sucedido
-            startBtn.style.display = "none";
-        }
+      let topIdx = 0;
+      prediction.forEach((p, i) => { if (p.probability > prediction[topIdx].probability) topIdx = i; });
 
-        async function loop() {
-            webcam.update(); // Atualiza o frame da webcam
-            await predict();
-            window.requestAnimationFrame(loop);
-        }
+      prediction.forEach((p, i) => {
+        const pct = Math.round(p.probability * 100);
+        const card = cards[i];
+        const bar = card.querySelector(".progress-bar");
+        const pctEl = card.querySelector(".label-pct");
+        const nameEl = card.querySelector(".class-name");
 
-        async function predict() {
-            const prediction = await model.predict(webcam.canvas);
-            
-            for (let i = 0; i < maxPredictions; i++) {
-                // Transforma a probabilidade em porcentagem (0 a 100)
-                const className = prediction[i].className;
-                const probability = (prediction[i].probability * 100).toFixed(0);
-                
-                // Atualiza os textos
-                document.getElementById("class-name-" + i).innerText = className;
-                
-                // Atualiza a barra de progresso
-                const progressBar = document.getElementById("progress-bar-" + i);
-                progressBar.style.width = probability + "%";
-                progressBar.innerText = probability + "%";
-                progressBar.setAttribute("aria-valuenow", probability);
+        nameEl.textContent = p.className;
+        pctEl.textContent = pct + "%";
+        bar.style.width = pct + "%";
+        bar.setAttribute("aria-valuenow", pct);
 
-                // Muda a cor da barra baseado no nível de confiança
-                if (probability >= 80) {
-                    progressBar.className = "progress-bar bg-success"; // Verde para alta confiança
-                } else if (probability >= 40) {
-                    progressBar.className = "progress-bar bg-warning text-dark"; // Amarelo para média
-                } else {
-                    progressBar.className = "progress-bar bg-danger"; // Vermelho para baixa
-                }
-            }
-        }
-    </script>
+        card.classList.toggle("top-match", i === topIdx);
+        pctEl.classList.toggle("top", i === topIdx);
+        bar.classList.toggle("top", i === topIdx);
+      });
+    }
+
+    function stopWebcam() {
+      running = false;
+      if (webcam) webcam.stop();
+      webcamWrapper.innerHTML = `<div id="webcam-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:.5rem;color:#a5b4fc;">
+        <i class="bi bi-camera-video" style="font-size:3rem;"></i>
+        <p style="font-size:.85rem;color:#6b7280;margin:0;">Câmera desativada</p>
+      </div>`;
+      webcamWrapper.classList.remove("active");
+      btnStop.classList.add("d-none");
+      badgeLive.classList.add("d-none");
+      btnStart.classList.remove("d-none");
+      btnStart.disabled = false;
+      statusMsg.textContent = "";
+    }
+  </script>
 </body>
 </html>
