@@ -3,358 +3,401 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hugo Motta Faria — Image Classifier</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <title>Hugo Motta Faria - Classificador de Imagens</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <style>
     :root {
-      --brand: #4f46e5;
-      --brand-light: #eef2ff;
-      --brand-dark: #3730a3;
-      --surface: #f8f9fa;
-      --radius: 1rem;
+      --primary: #6C63FF;
+      --primary-dark: #4B44CC;
+      --accent: #FF6584;
+      --bg: #f4f6fb;
+      --card-bg: #ffffff;
+      --text-main: #22213a;
+      --text-muted: #7b7b9d;
+      --radius: 18px;
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%);
-      min-height: 100vh;
+      background: var(--bg);
       font-family: 'Segoe UI', system-ui, sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
     }
 
-    .hero-card {
-      background: #fff;
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      padding: 2rem 1.5rem 2.5rem;
+      text-align: center;
+      clip-path: ellipse(110% 100% at 50% 0%);
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    header p {
+      font-size: 1rem;
+      opacity: 0.85;
+      margin-top: 0.35rem;
+    }
+
+    .badge-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50px;
+      padding: 4px 14px;
+      font-size: 0.78rem;
+      margin-top: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    .main-card {
+      background: var(--card-bg);
       border-radius: var(--radius);
-      box-shadow: 0 4px 24px rgba(79, 70, 229, 0.10);
-      border: 1.5px solid #e0e7ff;
+      box-shadow: 0 8px 32px rgba(108,99,255,0.10), 0 2px 8px rgba(0,0,0,0.05);
+      padding: 2rem;
+      margin-top: -1.5rem;
     }
 
-    .avatar-ring {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: var(--brand-light);
-      border: 3px solid var(--brand);
+    /* --- Camera button --- */
+    #btn-start {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.7rem;
-      font-weight: 700;
-      color: var(--brand-dark);
-      letter-spacing: -1px;
+      gap: 0.6rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 0.85rem 2.2rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 18px rgba(108,99,255,0.35);
+      width: 100%;
+      max-width: 320px;
+      letter-spacing: 0.2px;
+    }
+
+    #btn-start:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 6px 24px rgba(108,99,255,0.45);
+      transform: translateY(-1px);
+    }
+
+    #btn-start:active { transform: scale(0.97); }
+
+    #btn-start .btn-icon {
+      width: 30px;
+      height: 30px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
       flex-shrink: 0;
     }
 
-    .section-title {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #9ca3af;
-      margin-bottom: 0.75rem;
+    #btn-start.running {
+      background: #e74c3c;
+      box-shadow: 0 4px 18px rgba(231,76,60,0.35);
     }
 
+    #btn-start.running:hover {
+      background: #c0392b;
+      box-shadow: 0 6px 24px rgba(231,76,60,0.45);
+    }
+
+    /* --- Webcam --- */
     #webcam-wrapper {
-      background: #f1f5f9;
-      border-radius: var(--radius);
-      border: 2px dashed #c7d2fe;
-      min-height: 220px;
-      display: flex;
-      align-items: center;
+      display: none;
       justify-content: center;
-      overflow: hidden;
-      position: relative;
-      transition: border-color 0.3s;
+      align-items: center;
     }
 
-    #webcam-wrapper.active {
-      border: 2px solid var(--brand);
-    }
+    #webcam-wrapper.visible { display: flex; }
 
-    #webcam-wrapper canvas {
-      border-radius: calc(var(--radius) - 4px);
-      width: 100% !important;
-      height: auto !important;
+    #webcam-container canvas {
+      border-radius: 16px;
+      box-shadow: 0 6px 28px rgba(108,99,255,0.18);
+      max-width: 100%;
+      height: auto;
       display: block;
     }
 
-    #webcam-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      color: #a5b4fc;
-    }
-
-    #webcam-placeholder i {
-      font-size: 3rem;
-    }
-
-    #webcam-placeholder p {
-      font-size: 0.85rem;
-      color: #6b7280;
-      margin: 0;
-    }
-
-    .btn-start {
-      background: var(--brand);
-      color: #fff;
-      border: none;
-      border-radius: 0.75rem;
-      padding: 0.65rem 1.75rem;
-      font-size: 1rem;
-      font-weight: 600;
+    /* --- Status badge --- */
+    .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-      box-shadow: 0 2px 12px rgba(79, 70, 229, 0.25);
-    }
-
-    .btn-start:hover:not(:disabled) {
-      background: var(--brand-dark);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 18px rgba(79, 70, 229, 0.35);
-    }
-
-    .btn-start:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-
-    .btn-start:disabled {
-      background: #a5b4fc;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .btn-stop {
-      background: transparent;
-      color: #ef4444;
-      border: 1.5px solid #fca5a5;
-      border-radius: 0.75rem;
-      padding: 0.55rem 1.25rem;
-      font-size: 0.9rem;
+      gap: 6px;
+      border-radius: 50px;
+      padding: 4px 14px;
+      font-size: 0.82rem;
       font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: background 0.2s, transform 0.15s;
+      letter-spacing: 0.2px;
     }
 
-    .btn-stop:hover {
-      background: #fef2f2;
-      transform: translateY(-1px);
+    .status-badge.idle    { background: #f0f0f7; color: var(--text-muted); }
+    .status-badge.loading { background: #fff3e0; color: #e67e22; }
+    .status-badge.live    { background: #e8f8f0; color: #27ae60; }
+    .status-badge.error   { background: #fdecea; color: #e74c3c; }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
     }
 
-    .label-card {
-      background: var(--surface);
-      border-radius: 0.75rem;
-      padding: 0.85rem 1rem;
-      margin-bottom: 0.65rem;
-      border: 1px solid #e5e7eb;
-      transition: border-color 0.3s, background 0.3s;
+    .status-badge.live .status-dot { animation: pulse 1.2s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
     }
 
-    .label-card.top-match {
-      background: #eef2ff;
-      border-color: #c7d2fe;
+    /* --- Labels / progress bars --- */
+    #label-container { display: none; }
+    #label-container.visible { display: block; }
+
+    .prediction-item {
+      margin-bottom: 1rem;
     }
 
-    .label-name {
-      font-size: 0.87rem;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 0.35rem;
+    .prediction-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
     }
 
-    .label-pct {
-      font-size: 0.85rem;
+    .prediction-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .prediction-percent {
+      font-size: 0.88rem;
       font-weight: 700;
-      color: var(--brand);
-      min-width: 42px;
+      color: var(--primary);
+      min-width: 44px;
       text-align: right;
     }
 
-    .label-pct.top {
-      color: var(--brand-dark);
-    }
-
-    .progress {
+    .prediction-bar-track {
       height: 10px;
-      border-radius: 99px;
-      background: #e5e7eb;
+      background: #ece9ff;
+      border-radius: 50px;
+      overflow: hidden;
     }
 
-    .progress-bar {
-      border-radius: 99px;
-      background: linear-gradient(90deg, #818cf8, #4f46e5);
-      transition: width 0.35s cubic-bezier(.4,0,.2,1);
+    .prediction-bar-fill {
+      height: 100%;
+      border-radius: 50px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+      transition: width 0.25s ease;
+      width: 0%;
     }
 
-    .progress-bar.top {
-      background: linear-gradient(90deg, #4f46e5, #3730a3);
+    /* top prediction highlight */
+    .prediction-item.top-match .prediction-bar-fill {
+      background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
     }
 
-    .badge-live {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: #f0fdf4;
-      color: #16a34a;
-      border: 1px solid #bbf7d0;
-      border-radius: 99px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 2px 10px;
+    .prediction-item.top-match .prediction-percent {
+      color: #27ae60;
     }
 
-    .dot-live {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #22c55e;
-      animation: pulse-dot 1.2s infinite;
+    /* --- Section label --- */
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
     }
 
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.7); }
+    /* --- Divider --- */
+    .my-divider {
+      border: none;
+      border-top: 1.5px dashed #e0dff7;
+      margin: 1.5rem 0;
     }
 
-    .status-msg {
-      font-size: 0.8rem;
-      color: #9ca3af;
-      margin-top: 0.25rem;
-    }
-
-    .empty-labels {
+    /* --- Footer --- */
+    footer {
       text-align: center;
-      color: #d1d5db;
-      padding: 1.5rem 0;
-      font-size: 0.9rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      padding: 1.5rem 1rem 2rem;
     }
 
     @media (max-width: 576px) {
-      .hero-card { padding: 1.25rem !important; }
+      header h1 { font-size: 1.5rem; }
+      .main-card { padding: 1.25rem; border-radius: 14px; }
+      #btn-start { font-size: 0.97rem; padding: 0.75rem 1.5rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container py-4 py-md-5">
-    <div class="row justify-content-center">
-      <div class="col-12 col-sm-10 col-md-8 col-lg-6">
 
-        <div class="hero-card p-4 p-md-4 mb-4">
-          <div class="d-flex align-items-center gap-3 mb-4">
-            <div class="avatar-ring">HF</div>
-            <div>
-              <h1 class="h5 mb-0 fw-bold" style="color:#1e1b4b;">Hugo Motta Faria</h1>
-              <p class="mb-0 text-muted" style="font-size:0.85rem;">Image Classifier · Teachable Machine</p>
-            </div>
-          </div>
+  <!-- HEADER -->
+  <header>
+    <div class="badge-tag"><i class="bi bi-camera-fill me-1"></i>Visão Computacional</div>
+    <h1 class="mt-2">SEU NOME</h1>
+    <p>Classificação de imagens com Teachable Machine</p>
+  </header>
 
-          <p class="section-title">câmera</p>
-          <div id="webcam-wrapper" class="mb-3">
-            <div id="webcam-placeholder">
-              <i class="bi bi-camera-video"></i>
-              <p>Clique em <strong>Iniciar</strong> para ativar a câmera</p>
-            </div>
-          </div>
+  <!-- MAIN -->
+  <div class="container py-4" style="max-width: 600px;">
+    <div class="main-card">
 
-          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div>
-              <button id="btn-start" class="btn-start" onclick="init()">
-                <i class="bi bi-play-fill"></i> Iniciar câmera
-              </button>
-            </div>
-            <button id="btn-stop" class="btn-stop d-none" onclick="stopWebcam()">
-              <i class="bi bi-stop-fill"></i> Parar
-            </button>
-            <span id="badge-live" class="badge-live d-none">
-              <span class="dot-live"></span> Ao vivo
-            </span>
-          </div>
-          <p id="status-msg" class="status-msg mt-2"></p>
-        </div>
-
-        <div class="hero-card p-4 p-md-4">
-          <p class="section-title">resultados</p>
-          <div id="label-container">
-            <div class="empty-labels">
-              <i class="bi bi-bar-chart-line" style="font-size:1.8rem; display:block; margin-bottom:0.5rem;"></i>
-              Nenhuma predição ainda
-            </div>
-          </div>
-        </div>
-
+      <!-- Status -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <span class="section-label mb-0">Classificador</span>
+        <span class="status-badge idle" id="status-badge">
+          <span class="status-dot"></span>
+          <span id="status-text">Aguardando</span>
+        </span>
       </div>
+
+      <!-- Start button -->
+      <div class="d-flex justify-content-center mb-4">
+        <button id="btn-start" onclick="handleToggle()">
+          <span class="btn-icon"><i class="bi bi-camera-video-fill" id="btn-icon"></i></span>
+          <span id="btn-label">Permitir câmera e iniciar</span>
+        </button>
+      </div>
+
+      <!-- Webcam -->
+      <div id="webcam-wrapper" class="mb-4">
+        <div id="webcam-container"></div>
+      </div>
+
+      <!-- Results -->
+      <div id="label-container">
+        <hr class="my-divider" />
+        <p class="section-label">Resultados</p>
+      </div>
+
     </div>
   </div>
 
+  <!-- FOOTER -->
+  <footer>
+    Powered by <strong>Teachable Machine</strong> &amp; TensorFlow.js &nbsp;·&nbsp; SEU NOME &copy; 2025
+  </footer>
+
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
   <script>
-    const MODEL_URL = "./my_model/";
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/m2kR_izoX/";
+
     let model, webcam, maxPredictions;
     let running = false;
 
-    const btnStart = document.getElementById("btn-start");
-    const btnStop = document.getElementById("btn-stop");
-    const badgeLive = document.getElementById("badge-live");
-    const statusMsg = document.getElementById("status-msg");
-    const webcamWrapper = document.getElementById("webcam-wrapper");
-    const labelContainer = document.getElementById("label-container");
+    const btnStart      = document.getElementById('btn-start');
+    const btnLabel      = document.getElementById('btn-label');
+    const btnIcon       = document.getElementById('btn-icon');
+    const statusBadge   = document.getElementById('status-badge');
+    const statusText    = document.getElementById('status-text');
+    const webcamWrapper = document.getElementById('webcam-wrapper');
+    const webcamCont    = document.getElementById('webcam-container');
+    const labelCont     = document.getElementById('label-container');
+
+    function setStatus(state, text) {
+      statusBadge.className = 'status-badge ' + state;
+      statusBadge.innerHTML = `<span class="status-dot"></span><span>${text}</span>`;
+    }
+
+    async function handleToggle() {
+      if (!running) {
+        await init();
+      } else {
+        stopWebcam();
+      }
+    }
 
     async function init() {
-      btnStart.disabled = true;
-      statusMsg.textContent = "Carregando modelo…";
-
       try {
-        const modelURL = MODEL_URL + "model.json";
+        setStatus('loading', 'Carregando modelo…');
+        btnStart.disabled = true;
+
+        const modelURL    = MODEL_URL + "model.json";
         const metadataURL = MODEL_URL + "metadata.json";
-        model = await tmImage.load(modelURL, metadataURL);
+
+        model         = await tmImage.load(modelURL, metadataURL);
         maxPredictions = model.getTotalClasses();
 
-        statusMsg.textContent = "Solicitando acesso à câmera…";
         const flip = true;
         webcam = new tmImage.Webcam(300, 300, flip);
         await webcam.setup();
         await webcam.play();
 
-        document.getElementById("webcam-placeholder").remove();
-        webcamWrapper.appendChild(webcam.canvas);
-        webcamWrapper.classList.add("active");
+        webcamCont.innerHTML = '';
+        webcamCont.appendChild(webcam.canvas);
+        webcamWrapper.classList.add('visible');
 
-        buildLabels();
+        buildBars();
+        labelCont.classList.add('visible');
+
         running = true;
-        btnStart.classList.add("d-none");
-        btnStop.classList.remove("d-none");
-        badgeLive.classList.remove("d-none");
-        statusMsg.textContent = "";
+        btnStart.disabled  = false;
+        btnStart.classList.add('running');
+        btnLabel.textContent = 'Parar câmera';
+        btnIcon.className    = 'bi bi-stop-circle-fill';
+        setStatus('live', 'Ao vivo');
 
         window.requestAnimationFrame(loop);
       } catch (err) {
+        console.error(err);
+        setStatus('error', 'Erro ao iniciar');
         btnStart.disabled = false;
-        statusMsg.textContent = "Erro: " + (err.message || "Não foi possível iniciar.");
+        btnLabel.textContent = 'Tentar novamente';
       }
     }
 
-    function buildLabels() {
-      labelContainer.innerHTML = "";
+    function stopWebcam() {
+      if (webcam) { webcam.stop(); }
+      running = false;
+      webcamWrapper.classList.remove('visible');
+      labelCont.classList.remove('visible');
+      webcamCont.innerHTML = '';
+      btnStart.classList.remove('running');
+      btnLabel.textContent = 'Permitir câmera e iniciar';
+      btnIcon.className    = 'bi bi-camera-video-fill';
+      setStatus('idle', 'Aguardando');
+    }
+
+    function buildBars() {
+      // Keep only the section label (first child), remove old bars
+      while (labelCont.children.length > 1) {
+        labelCont.removeChild(labelCont.lastChild);
+      }
       for (let i = 0; i < maxPredictions; i++) {
-        const card = document.createElement("div");
-        card.className = "label-card";
-        card.innerHTML = `
-          <div class="label-name">
-            <span class="class-name">Classe ${i + 1}</span>
-            <span class="label-pct">0%</span>
+        const item = document.createElement('div');
+        item.className = 'prediction-item';
+        item.id = 'pred-' + i;
+        item.innerHTML = `
+          <div class="prediction-header">
+            <span class="prediction-name" id="name-${i}">Classe ${i + 1}</span>
+            <span class="prediction-percent" id="pct-${i}">0%</span>
           </div>
-          <div class="progress">
-            <div class="progress-bar" role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          <div class="prediction-bar-track">
+            <div class="prediction-bar-fill" id="bar-${i}"></div>
           </div>`;
-        labelContainer.appendChild(card);
+        labelCont.appendChild(item);
       }
     }
 
@@ -367,42 +410,31 @@
 
     async function predict() {
       const prediction = await model.predict(webcam.canvas);
-      const cards = labelContainer.querySelectorAll(".label-card");
-
       let topIdx = 0;
-      prediction.forEach((p, i) => { if (p.probability > prediction[topIdx].probability) topIdx = i; });
+      let topVal = 0;
 
-      prediction.forEach((p, i) => {
-        const pct = Math.round(p.probability * 100);
-        const card = cards[i];
-        const bar = card.querySelector(".progress-bar");
-        const pctEl = card.querySelector(".label-pct");
-        const nameEl = card.querySelector(".class-name");
+      for (let i = 0; i < maxPredictions; i++) {
+        if (prediction[i].probability > topVal) {
+          topVal = prediction[i].probability;
+          topIdx = i;
+        }
+      }
 
-        nameEl.textContent = p.className;
-        pctEl.textContent = pct + "%";
-        bar.style.width = pct + "%";
-        bar.setAttribute("aria-valuenow", pct);
+      for (let i = 0; i < maxPredictions; i++) {
+        const prob = prediction[i].probability;
+        const pct  = (prob * 100).toFixed(1) + '%';
 
-        card.classList.toggle("top-match", i === topIdx);
-        pctEl.classList.toggle("top", i === topIdx);
-        bar.classList.toggle("top", i === topIdx);
-      });
-    }
+        document.getElementById('name-' + i).textContent = prediction[i].className;
+        document.getElementById('pct-'  + i).textContent = pct;
+        document.getElementById('bar-'  + i).style.width = pct;
 
-    function stopWebcam() {
-      running = false;
-      if (webcam) webcam.stop();
-      webcamWrapper.innerHTML = `<div id="webcam-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:.5rem;color:#a5b4fc;">
-        <i class="bi bi-camera-video" style="font-size:3rem;"></i>
-        <p style="font-size:.85rem;color:#6b7280;margin:0;">Câmera desativada</p>
-      </div>`;
-      webcamWrapper.classList.remove("active");
-      btnStop.classList.add("d-none");
-      badgeLive.classList.add("d-none");
-      btnStart.classList.remove("d-none");
-      btnStart.disabled = false;
-      statusMsg.textContent = "";
+        const item = document.getElementById('pred-' + i);
+        if (i === topIdx) {
+          item.classList.add('top-match');
+        } else {
+          item.classList.remove('top-match');
+        }
+      }
     }
   </script>
 </body>
