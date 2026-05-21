@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gerencie suas tarefas diárias com elegância. Login seguro, categorias e muito mais." />
+  <title>TaskFlow — Gerenciador de Tarefas</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN (utilities only) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom design system -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════
+       VIEW: LOGIN
+  ════════════════════════════════════════ -->
+  <div id="login-view" class="view-auth">
+    <div class="auth-card glass">
+
+      <div class="text-center mb-8">
+        <div class="auth-icon auth-icon--blue mx-auto">✓</div>
+        <h1 class="auth-title">TaskFlow</h1>
+        <p class="auth-subtitle">Entre na sua conta</p>
+      </div>
+
+      <form id="login-form" class="form-stack" novalidate>
+        <div class="form-group">
+          <label for="login-email">E-mail</label>
+          <input
+            type="email"
+            id="login-email"
+            class="input-field"
+            placeholder="seu@email.com"
+            autocomplete="email"
+          />
+          <p id="login-email-error" class="error-msg hidden-view"></p>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Senha</label>
+          <input
+            type="password"
+            id="login-password"
+            class="input-field"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+          <p id="login-password-error" class="error-msg hidden-view"></p>
+        </div>
+
+        <p id="login-general-error" class="error-msg text-center hidden-view"></p>
+
+        <button type="submit" id="login-submit" class="btn btn-primary">Entrar</button>
+      </form>
+
+      <p class="auth-footer">
+        Não tem conta?
+        <a href="#" id="go-to-register">Cadastre-se</a>
+      </p>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       VIEW: CADASTRO
+  ════════════════════════════════════════ -->
+  <div id="register-view" class="view-auth hidden-view">
+    <div class="auth-card glass">
+
+      <div class="text-center mb-8">
+        <div class="auth-icon auth-icon--green mx-auto">+</div>
+        <h1 class="auth-title">Criar Conta</h1>
+        <p class="auth-subtitle">Comece a organizar suas tarefas</p>
+      </div>
+
+      <form id="register-form" class="form-stack" novalidate>
+        <div class="form-group">
+          <label for="register-name">Nome completo</label>
+          <input
+            type="text"
+            id="register-name"
+            class="input-field"
+            placeholder="Seu nome"
+            autocomplete="name"
+          />
+          <p id="register-name-error" class="error-msg hidden-view"></p>
+        </div>
+
+        <div class="form-group">
+          <label for="register-email">E-mail</label>
+          <input
+            type="email"
+            id="register-email"
+            class="input-field"
+            placeholder="seu@email.com"
+            autocomplete="email"
+          />
+          <p id="register-email-error" class="error-msg hidden-view"></p>
+        </div>
+
+        <div class="form-group">
+          <label for="register-password">Senha</label>
+          <input
+            type="password"
+            id="register-password"
+            class="input-field"
+            placeholder="Mínimo 6 caracteres"
+            autocomplete="new-password"
+          />
+          <p id="register-password-error" class="error-msg hidden-view"></p>
+        </div>
+
+        <p id="register-general-error" class="error-msg text-center hidden-view"></p>
+        <p id="register-success"       class="success-msg hidden-view"></p>
+
+        <button type="submit" id="register-submit" class="btn btn-success">Criar Conta</button>
+      </form>
+
+      <p class="auth-footer">
+        Já tem conta?
+        <a href="#" id="go-to-login">Fazer login</a>
+      </p>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       VIEW: DASHBOARD
+  ════════════════════════════════════════ -->
+  <div id="dashboard-view" class="hidden-view">
+    <div class="dashboard-inner">
+
+      <!-- Header -->
+      <header class="dashboard-header glass">
+        <div class="header-user">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div>
+            <p class="user-greeting">Olá, <span id="user-name-display"></span>!</p>
+            <p class="user-tagline">Organize o seu dia</p>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn-logout">Sair</button>
+      </header>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <p class="stat-number stat-number--blue"  id="stat-total">0</p>
+          <p class="stat-label">Total</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-number stat-number--amber" id="stat-pending">0</p>
+          <p class="stat-label">Pendentes</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-number stat-number--green" id="stat-done">0</p>
+          <p class="stat-label">Concluídas</p>
+        </div>
+      </div>
+
+      <!-- New task form -->
+      <section class="form-section glass">
+        <h2 class="section-title">Nova Tarefa</h2>
+
+        <form id="task-form" novalidate>
+          <div class="task-form-row">
+            <div class="input-wrap">
+              <input
+                type="text"
+                id="task-title"
+                class="input-field"
+                placeholder="Título da tarefa…"
+              />
+              <p id="task-title-error" class="error-msg hidden-view"></p>
+            </div>
+            <div>
+              <select id="task-type" class="input-field" style="min-width:140px;">
+                <option value="Trabalho">💼 Trabalho</option>
+                <option value="Pessoal">🙂 Pessoal</option>
+                <option value="Estudos">📚 Estudos</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:0.75rem;">
+            <textarea
+              id="task-description"
+              class="input-field"
+              rows="2"
+              placeholder="Descrição (opcional)…"
+            ></textarea>
+          </div>
+
+          <div class="task-form-actions">
+            <button type="submit" id="task-submit" class="btn-add-task">＋ Adicionar Tarefa</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Task list -->
+      <section>
+        <div class="filter-bar">
+          <h2 class="section-title" style="margin-bottom:0;">Suas Tarefas</h2>
+          <div class="filter-group">
+            <button class="filter-btn active" data-filter="all"     id="filter-all">Todas</button>
+            <button class="filter-btn"        data-filter="pending" id="filter-pending">Pendentes</button>
+            <button class="filter-btn"        data-filter="done"    id="filter-done">Concluídas</button>
+          </div>
+        </div>
+
+        <div id="task-list" class="task-list"></div>
+
+        <div id="empty-state" class="empty-state glass hidden-view">
+          <p class="empty-state-icon">📋</p>
+          <p class="empty-state-title">Nenhuma tarefa cadastrada ainda.</p>
+          <p class="empty-state-sub">Adicione sua primeira tarefa acima!</p>
+        </div>
+      </section>
+
+    </div><!-- /dashboard-inner -->
+  </div><!-- /dashboard-view -->
+
+  <script src="app.js"></script>
+</body>
+</html>
